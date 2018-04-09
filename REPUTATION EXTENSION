@@ -1,0 +1,70 @@
+From http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.352.6104&rep=rep1&type=pdf
+* The reputation, which is expressed by a floating-point number between 0 and 1
+* Each node stores locally two reputation values about its neighbours, the local and global reputations.
+
+
+
+
+The goal of the reputation mechanism is to detect black
+and grey holes that do not correctly forward the traffic going
+through them and to prevent future data from following this
+path. The reputation, which is expressed by a floating-point
+number between 0 and 1, indicates how much a node can
+be trusted by others through a history of its behaviour when
+forwarding data packets. The reputation mechanism is based
+on three reputation values: the local reputation, the global
+reputation and the current reputation broadcasted in RREQs
+
+A. Local and global reputation
+
+Each node stores locally two reputation values about its
+neighbours, the local and global reputations.
+The local reputation reflects the reliability with which a
+given node successfully forwarded packets sent to it in the
+past. The Watchdog module is in charge of updating this
+reputation value. Whenever a neighbour duly forwards a
+packet untouched, its local reputation is increased. Otherwise,
+it is decreased. In the following RL A[B](i) will stand for the local reputation 
+of node B at node A at the ith iteration. 
+The global reputation reflects the reliability other nodes of
+the WMN put in a given node. This global value (superscript
+G) has been derived from reputation values distribued through
+modified AODV messages and stored locally.
+For both local and global reputation values, a history of
+the last N reputations computed (local) or received (global)
+about a given node is saved. It helps to identify sporadic
+misconducts.
+
+B. Current reputation
+
+Propagated through the network, the current reputation
+(superscript C) is a merge of both local and global reputations
+that can be exploited to determine the real behaviour of a node.
+In other words, it represents how much a node is trusted by the
+whole network plus how much each node trusts that given node
+(only when that node is a neighbour). By merging the local
+and global reputations, this mechanism prevents a malicious
+node from precisely identifying which of its neighbours has
+begun to whistle blow about its deviant behaviour.
+
+D. Reputation update
+
+The dissemination of reputation is done through the AODVREX
+process and is therefore based on its routing messages
+to propagate the reputation data. The following formulas are
+variations of the development from [2], [3].
+Let us define a scenario to illustrate the reputation calculation.
+Node C requests a route and therefore sends a RREQ
+message. Node B receives that packet and because it cannot
+reply to the request, inserts RC
+B[C](i), the reputation data it
+stores about node C, in the RREQ it forwards. When node A
+receives the packet from node B, node A checks the packet for
+reputation data and weight it with RC
+A[B](i−1), the reputation
+of B locally stored in A, according to (1). The weighting is
+motivated by the risk that a malicous node B could transmit a
+forged reputation about node C. Finally, node A compares in
+(2) the weighted outcome against the last global reputation it
+received about node C.
+
