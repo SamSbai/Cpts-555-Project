@@ -21,9 +21,18 @@ Portability includes the adaptability, install ability, co-existence, and replac
 Quality
 Quality in use is the user's view of quality.
 
-
+https://ieeexplore.ieee.org/xpls/icp.jsp?arnumber=7173483
 Sugested Metrics are Functionality, Reliability, Usability and quality in use. These four can be defined mathematically as:
 
-If you want to embed images, this is how you do it:
+Quality       https://imgur.com/XorfIfB
+Useablity     https://imgur.com/iOo5I21
+Relibility    https://imgur.com/YiQa1G0
+Functionality https://imgur.com/P6uDJPy
+(https://imgur.com/a/158AW)
 
-![Image of Yaktocat](https://octodex.github.com/images/yaktocat.png)
+Alternate: https://ieeexplore.ieee.org/xpls/icp.jsp?arnumber=6688787
+Modeled like      https://imgur.com/a/Yvubz
+
+Packet Delivery Ratio:    The ratio of the packets received at the destination to the packets sent at the source.
+Total Data Transferred:   The total data received successfully at the destination.
+Average End-to-end Delay: The time taken for a packet to be transmitted across a network from the source to the destination.
