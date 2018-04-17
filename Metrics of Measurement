@@ -1,0 +1,29 @@
+Default Metrics of Everything
+
+Functionality
+Functionality includes suitability, accuracy, interoperability, and security.
+
+Reliability
+Reliability includes the maturity, fault tolerance, and recoverability.
+
+Usability
+Usability includes the understandability, learn ability, operability, and attractiveness.
+
+Efficiency
+Efficiency includes the time behaviour and resource utilization sub characteristics. Time behaviour sub-characteristic is very important in the wireless environment because the price of each minute of data transferring is very high, and the users will avoid expensive systems.
+
+Maintainability
+Maintainability includes the analyzability, changeability, stability, and testability sub-characteristics.
+
+Portability
+Portability includes the adaptability, install ability, co-existence, and replace ability sub- characteristics.
+
+Quality
+Quality in use is the user's view of quality.
+
+
+Sugested Metrics are Functionality, Reliability, Usability and quality in use. These four can be defined mathematically as:
+
+If you want to embed images, this is how you do it:
+
+![Image of Yaktocat](https://octodex.github.com/images/yaktocat.png)
