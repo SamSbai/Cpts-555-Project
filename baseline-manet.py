@@ -12,6 +12,12 @@ import random
 # We assume that every device knows the full network topology, for simplicity.
 NETWORK = nx.Graph()
 
+# Statistics for reliability
+PINGS_SENT = 0
+PINGS_RCVD = 0
+PONGS_RCVD = 0
+DROP_COUNT = 0
+
 # A simple message with a sender, intended receiver, data, and a history of the
 # indices of recipients who have forwarded on this message. The src and dst
 # fields are the indices of the original sender and intended recipient.
@@ -38,7 +44,7 @@ class Message:
 # The device is an actor that creates, receives, and acts upon messages.
 # Every device has a set level of "greed", indicating how likely it is to behave
 # selfishly. A value of 0 means never, 1 means always, in between is random.
-class Device:
+class Device:    
     def __init__(self, index, greed):
         self.index = index
         self.greed = greed
@@ -54,21 +60,21 @@ class Device:
             msg.postmark(self.index)
             NETWORK.nodes[msg.dst]["device"].receive_msg(msg)
             return msg.dst
-    
+        
         # Find a path that does not return to a previously visited node.
         spl = nx.shortest_path_length(NETWORK, self.index, msg.dst)
         paths = nx.all_simple_paths(NETWORK, self.index, msg.dst, cutoff=3+spl)
         options = [p for p in list(paths) if not msg.has_cycles_in(p)]
-
+        
         # If none exist, drop the packet. This should not happen.
         if len(options) == 0:
             return None
-    
+        
         # Otherwise, randomly select a path.
         # If we were less trustworthy, we might be more selective here.
         choice = random.choice(options)
         next_hop = choice[1]
-    
+        
         # Send the message on its merry way.
         msg.postmark(self.index)
         NETWORK.nodes[next_hop]["device"].receive_msg(msg)
@@ -77,26 +83,38 @@ class Device:
     # Called by other devices sending this device a message.
     # Here we decide whether to forward or drop a packet, or to do something
     # with it, as we are the intended recipient.
+    # NOTE: update trust scores when ping or pong received.
     def receive_msg(self, msg):
-        # NOTE: we may want to consider sending a return message as a means to
-        # inform our sender that we got their packet. This can be used to update
-        # trust scores in our "trusty" implementation.
-        if msg.dst == self.index:
-            print("Received a packet:", msg.content)
+        global PINGS_SENT
+        global PINGS_RCVD
+        global PONGS_RCVD
+        global DROP_COUNT
+        
+        if self.index == msg.dst:
+            if msg.content == "ping":
+                PINGS_RCVD += 1
+                response = Message(self.index, msg.src, "pong")
+                self.forward_msg(response)
+            elif msg.content == "pong":
+                PONGS_RCVD += 1
         elif random.random() >= self.greed:
             self.forward_msg(msg)
         else:
-            print("Packet eaten by black hole")
+            DROP_COUNT += 1
     
     # Create a new message to a random destination, and send it off.
+    # NOTE: decrement trust scores if no pong received after forward_msg.
     def produce_msg(self):
+        global PINGS_SENT
+        
         # Select a random destination other than ourselves.
         destinations = [i for i in NETWORK.nodes if i != self.index]
         dst = random.choice(destinations)
         src = self.index
-    
+        
         # Create a message and send it off into the ethers.
-        msg = Message(src, dst, "a")
+        PINGS_SENT += 1
+        msg = Message(src, dst, "ping")
         self.forward_msg(msg)
 
 # Setup network connections
@@ -118,10 +136,12 @@ NETWORK.add_edges_from([
     (19, 24), (20, 22), (20, 23), (22, 23), (22, 25), (23, 25)
 ])
 
+# Simulate a number of packet transitions
+for j in range(0, 100):
+    print("Iteration:", j)
+    for i in range(0, 26):
+        NETWORK.nodes[i]["device"].produce_msg()
 
-# Example of how a message might be sent.
-# Note that we will need a proper benchmark, perhaps by iterating over every
-# device, having it produce and send a message, and testing how many packets
-# reach their intended recipient.
-NETWORK.nodes[1]["device"].produce_msg()
-NETWORK.nodes[2]["device"].produce_msg()
+print("Ping Reliability:", PINGS_RCVD / PINGS_SENT)
+print("Pong Reliability:", PONGS_RCVD / PINGS_RCVD)
+print("Overall Reliability:", 1 - (DROP_COUNT / (PINGS_SENT + PINGS_RCVD)))
