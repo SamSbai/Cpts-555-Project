@@ -142,6 +142,12 @@ for j in range(0, 100):
     for i in range(0, 26):
         NETWORK.nodes[i]["device"].produce_msg()
 
-print("Ping Reliability:", PINGS_RCVD / PINGS_SENT)
-print("Pong Reliability:", PONGS_RCVD / PINGS_RCVD)
-print("Overall Reliability:", 1 - (DROP_COUNT / (PINGS_SENT + PINGS_RCVD)))
+# Output statistics
+packets_sent        = PINGS_SENT + PINGS_RCVD
+ping_reliability    = (PINGS_RCVD / PINGS_SENT) * 100
+pong_reliability    = (PONGS_RCVD / PINGS_RCVD) * 100
+overall_reliability = (1 - (DROP_COUNT / packets_sent)) * 100
+
+print("Ping Reliability:    %.3f%%" % ping_reliability)
+print("Pong Reliability:    %.3f%%" % pong_reliability)
+print("Overall Reliability: %.3f%%" % overall_reliability)
