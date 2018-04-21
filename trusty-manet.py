@@ -59,6 +59,7 @@ class Device:
         self.index = index
         self.greed = greed
         self.trust = [0 for _ in range(0, 26)]
+        self.got_pong = False
     
     # Uses a trust system to decide the next hop from a list of paths.
     def trusty_next_hop(self, paths):
@@ -105,7 +106,6 @@ class Device:
     # Called by other devices sending this device a message.
     # Here we decide whether to forward or drop a packet, or to do something
     # with it, as we are the intended recipient.
-    # NOTE: update trust scores when ping or pong received.
     def receive_msg(self, msg):
         global PINGS_SENT
         global PINGS_RCVD
@@ -113,19 +113,22 @@ class Device:
         global DROP_COUNT
         
         if self.index == msg.dst:
+            last_hop = msg.history[-1]
+            self.trust[last_hop] += 1
+
             if msg.content == "ping":
                 PINGS_RCVD += 1
                 response = Message(self.index, msg.src, "pong")
                 self.forward_msg(response)
             elif msg.content == "pong":
                 PONGS_RCVD += 1
+                self.got_pong = True
         elif random.random() >= self.greed:
             self.forward_msg(msg)
         else:
             DROP_COUNT += 1
     
     # Create a new message to a random destination, and send it off.
-    # NOTE: decrement trust scores if no pong received after forward_msg.
     def produce_msg(self):
         global PINGS_SENT
         
@@ -137,7 +140,14 @@ class Device:
         # Create a message and send it off into the ethers.
         PINGS_SENT += 1
         msg = Message(src, dst, "ping")
-        self.forward_msg(msg)
+        hop = self.forward_msg(msg)
+        
+        # Increase trust if we received a pong, else decrease it.
+        if self.got_pong:
+            self.trust[hop] += 1
+        else:
+            self.trust[hop] -= 1
+        self.got_pong = False
 
 # Setup network connections
 black_holes = [1,2,8,11,22]
