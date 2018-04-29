@@ -54,11 +54,13 @@ class Message:
 # selfishly. A value of 0 means never, 1 means always, in between is random.
 # Devices also have a "trust" score for every other device. This reflects the
 # number of packets successfully forwarded through a given node.
+# Count is the number of packets the device has been given to forward.
 class Device:    
     def __init__(self, index, greed):
         self.index = index
         self.greed = greed
         self.trust = [0 for _ in range(0, 26)]
+        self.count = 0
         self.got_pong = False
     
     # Uses a trust system to decide the next hop from a list of paths.
@@ -125,8 +127,10 @@ class Device:
                 PONGS_RCVD += 1
                 self.got_pong = True
         elif random.random() >= self.greed:
+            self.count += 1
             self.forward_msg(msg)
         else:
+            self.count += 1
             DROP_COUNT += 1
     
     # Create a new message to a random destination, and send it off.
@@ -177,6 +181,35 @@ for j in range(0, 100):
     for i in range(0, 26):
         NETWORK.nodes[i]["device"].produce_msg()
 
+# Compute average number of packets given to forward, and the standard
+# deviations for each of the normal and black hole nodes.
+avg_normal_count  = 0
+avg_greedy_count  = 0
+sdev_normal_count = 0
+sdev_greedy_count = 0
+
+for i in range(0, 26):
+    device = NETWORK.nodes[i]["device"]
+    if device.greed > 0.0:
+        avg_greedy_count += (device.count / 100)
+    else:
+        avg_normal_count += (device.count / 100)
+
+avg_normal_count /= 21
+avg_greedy_count /= 5
+
+for i in range(0, 26):
+    device = NETWORK.nodes[i]["device"]
+    if device.greed > 0.0:
+        square = ((device.count / 100) - avg_greedy_count) ** 2
+        sdev_greedy_count += square
+    else:
+        square = ((device.count / 100) - avg_normal_count) ** 2
+        sdev_normal_count += square
+
+sdev_normal_count = (sdev_normal_count / 21) ** 0.5
+sdev_greedy_count = (sdev_greedy_count / 5)  ** 0.5
+
 # Output statistics
 packets_sent        = PINGS_SENT + PINGS_RCVD
 ping_reliability    = (PINGS_RCVD / PINGS_SENT) * 100
@@ -186,3 +219,7 @@ overall_reliability = (1 - (DROP_COUNT / packets_sent)) * 100
 print("Ping Reliability:    %.3f%%" % ping_reliability)
 print("Pong Reliability:    %.3f%%" % pong_reliability)
 print("Overall Reliability: %.3f%%" % overall_reliability)
+print("Avg. Normal Fwd:     %3.3f"  % avg_normal_count)
+print("Avg. Greedy Fwd:     %3.3f"  % avg_greedy_count)
+print("St. Dev. Normal Fwd: %3.3f"  % sdev_normal_count)
+print("St. Dev. Greedy Fwd: %3.3f"  % sdev_greedy_count)
