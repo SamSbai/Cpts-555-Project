@@ -114,7 +114,8 @@ class Device:
         
         if self.index == msg.dst:
             last_hop = msg.history[-1]
-            self.trust[last_hop] += 1
+            if last_hop != msg.src:
+                self.trust[last_hop] += 1
 
             if msg.content == "ping":
                 PINGS_RCVD += 1
@@ -143,10 +144,12 @@ class Device:
         hop = self.forward_msg(msg)
         
         # Increase trust if we received a pong, else decrease it.
-        if self.got_pong:
-            self.trust[hop] += 1
-        else:
-            self.trust[hop] -= 1
+        # Don't do this for immediate neighbors, however. They'll always pong.
+        if hop != dst:
+            if self.got_pong:
+                self.trust[hop] += 1
+            else:
+                self.trust[hop] -= 1
         self.got_pong = False
 
 # Setup network connections
